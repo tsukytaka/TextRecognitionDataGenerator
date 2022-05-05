@@ -201,7 +201,7 @@ def generate(text, text_color):
             rnd.randint(min(c1[1], c2[1]), max(c1[1], c2[1])),
             rnd.randint(min(c1[2], c2[2]), max(c1[2], c2[2])),
         )
-
+        print("text = ", text)
         for word in text.split(" "):
             _, window_data, kappa_data, stroke_data, coords = _sample_text(
                 sess, word, translation
@@ -232,5 +232,5 @@ def generate(text, text_color):
             images.append(_crop_white_borders(image))
 
             plt.close()
-
+        print("number image = ", len(images))
         return _join_images(images), mask

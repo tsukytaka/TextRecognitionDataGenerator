@@ -3,7 +3,7 @@ import random as rnd
 
 from PIL import Image, ImageFilter, ImageStat
 
-from trdg import computer_text_generator, background_generator, distorsion_generator
+from trdg import computer_text_generator, background_generator, distorsion_generator, japanese_handwritten_text_generator
 from trdg.utils import mask_to_bboxes
 
 try:
@@ -15,15 +15,18 @@ except ImportError as e:
 class FakeTextDataGenerator(object):
     @classmethod
     def generate_from_tuple(cls, t):
-        """
-            Same as generate, but takes all parameters as one tuple
-        """
-
+        # """
+        #     Same as generate, but takes all parameters as one tuple
+        # """
+        print("t=", t)
+        print("len=", len(t))
         cls.generate(*t)
 
     @classmethod
     def generate(
         cls,
+        language,
+        index_image_of_text,
         index,
         text,
         font,
@@ -55,6 +58,7 @@ class FakeTextDataGenerator(object):
         image_mode="RGB", 
         output_bboxes=0,
     ):
+        print("text=", text)
         image = None
 
         margin_top, margin_left, margin_bottom, margin_right = margins
@@ -67,7 +71,12 @@ class FakeTextDataGenerator(object):
         if is_handwritten:
             if orientation == 1:
                 raise ValueError("Vertical handwritten text is unavailable")
-            image, mask = handwritten_text_generator.generate(text, text_color)
+            print("gen hw : ", language)
+            if language=="ja":
+                image, mask = japanese_handwritten_text_generator.generate(text, text_color, index_image_of_text)
+            else:
+                image, mask = handwritten_text_generator.generate(text, text_color)
+            
         else:
             image, mask = computer_text_generator.generate(
                 text,
@@ -91,7 +100,7 @@ class FakeTextDataGenerator(object):
         rotated_mask = mask.rotate(
             skewing_angle if not random_skew else random_angle, expand=1
         )
-
+        print("gen hw image OK")
         #############################
         # Apply distorsion to image #
         #############################
@@ -119,7 +128,7 @@ class FakeTextDataGenerator(object):
                 vertical=(distorsion_orientation == 0 or distorsion_orientation == 2),
                 horizontal=(distorsion_orientation == 1 or distorsion_orientation == 2),
             )
-
+        print("distorted hw image OK")
         ##################################
         # Resize image to desired format #
         ##################################
@@ -130,6 +139,7 @@ class FakeTextDataGenerator(object):
                 distorted_img.size[0]
                 * (float(size - vertical_margin) / float(distorted_img.size[1]))
             )
+            print("new_width=",new_width)
             resized_img = distorted_img.resize(
                 (new_width, size - vertical_margin), Image.ANTIALIAS
             )
@@ -152,10 +162,11 @@ class FakeTextDataGenerator(object):
             background_height = new_height + vertical_margin
         else:
             raise ValueError("Invalid orientation")
-
+        print("rotate hw image OK")
         #############################
         # Generate background image #
         #############################
+        print("background_type = ", background_type)
         if background_type == 0:
             background_img = background_generator.gaussian_noise(
                 background_height, background_width
@@ -175,7 +186,7 @@ class FakeTextDataGenerator(object):
         background_mask = Image.new(
             "RGB", (background_width, background_height), (0, 0, 0)
         )
-
+        print("create bg hw image OK")
         ##############################################################
         # Comparing average pixel value of text and background image #
         ##############################################################
@@ -194,12 +205,13 @@ class FakeTextDataGenerator(object):
 
                 return
         except Exception as err:
+            print("Comparing Exception")
             return
-
+        print("Comparing hw image OK")
         #############################
         # Place text with alignment #
         #############################
-
+        print()
         new_text_width, _ = resized_img.size
 
         if alignment == 0 or width == -1:
@@ -225,7 +237,7 @@ class FakeTextDataGenerator(object):
                 resized_mask,
                 (background_width - new_text_width - margin_right, margin_top),
             )
-
+        print("alignment hw image OK")
         #######################
         # Apply gaussian blur #
         #######################
@@ -236,10 +248,11 @@ class FakeTextDataGenerator(object):
         final_image = background_img.filter(gaussian_filter)
         final_mask = background_mask.filter(gaussian_filter)
         
-        ############################################
+        ###########################################
         # Change image mode (RGB, grayscale, etc.) #
         ############################################
-        
+        # final_image = rotated_img
+        # final_mask = rotated_mask
         final_image = final_image.convert(image_mode)
         final_mask = final_mask.convert(image_mode) 
 
@@ -250,23 +263,24 @@ class FakeTextDataGenerator(object):
         if space_width == 0:
             text = text.replace(" ", "")
         if name_format == 0:
-            name = "{}_{}".format(text, str(index))
+            name = "{}_{}_{}".format(str(index), text, str(index_image_of_text))
         elif name_format == 1:
             name = "{}_{}".format(str(index), text)
         elif name_format == 2:
             name = str(index)
         else:
             print("{} is not a valid name format. Using default.".format(name_format))
-            name = "{}_{}".format(text, str(index))
+            name = "{}_{}".format(str(index), text)
 
         image_name = "{}.{}".format(name, extension)
         mask_name = "{}_mask.png".format(name)
         box_name = "{}_boxes.txt".format(name)
         tess_box_name = "{}.box".format(name)
 
-
+        print("process output image")
         # Save the image
         if out_dir is not None:
+            print("save output image")
             final_image.save(os.path.join(out_dir, image_name))
             if output_mask == 1:
                 final_mask.save(os.path.join(out_dir, mask_name))
@@ -281,6 +295,7 @@ class FakeTextDataGenerator(object):
                     for bbox, char in zip(bboxes, text):
                         f.write(" ".join([char] + [str(v) for v in bbox] + ['0']) + "\n")
         else:
+            print("output image")
             if output_mask == 1:
                 return final_image, final_mask
             return final_image
