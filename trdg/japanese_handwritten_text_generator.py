@@ -107,6 +107,11 @@ char_dict_9G = {}
 char_dict_1C = {}
 
 def generate(text, text_color, count):
+    if len(char_dict_1C) == 0:
+        chars = read_chars(DATA_DIR_ROOT + 'ETL1/chars.txt')
+        print("number char 1C = ", len(chars))
+        for i in range(len(chars)):
+            char_dict_1C[chars[i]] = i
     if len(char_dict_8G) == 0:
         chars = read_chars(DATA_DIR_ROOT + 'ETL8G/chars.txt')
         print("number char 8G = ", len(chars))
@@ -121,7 +126,23 @@ def generate(text, text_color, count):
     
     images=[]
     for k in range(len(text)):
-        if text[k] in char_dict_8G:
+        if text[k] in char_dict_1C:
+            indexDataFile = char_dict_1C[text[k]] // 8 + 7
+            dataFile = DATA_DIR_ROOT + 'ETL1/ETL1C_{:02d}'.format(indexDataFile)
+            print("dataFile = ", dataFile)
+            etln_record = ETL167_Record()
+            index = count + 1411*(char_dict_1C[text[k]]%8)
+            if (indexDataFile == 9 and char_dict_1C[text[k]] > char_dict_1C['ナ']) \
+            or (indexDataFile == 12 and char_dict_1C[text[k]] > char_dict_1C['リ']):
+                index -= 1
+            print("index=", index)
+            f = bitstring.ConstBitStream(filename=dataFile)
+            record = etln_record.read(f, index)
+            char = etln_record.get_char()
+            img = etln_record.get_image()
+            images.append(img)
+
+        elif text[k] in char_dict_8G:
             indexDataFile = count // 5 + 1
             dataFile = DATA_DIR_ROOT + 'ETL8G/ETL8G_{:02d}'.format(indexDataFile)
             print("dataFile = ", dataFile)
@@ -153,12 +174,13 @@ def generate(text, text_color, count):
             images.clear()
             break
     if len(images) > 0:
-        w, h = images[0].width, images[0].height
+        w, h = 64, 63 #images[0].width, images[0].height
         tiled = Image.new(images[0].mode, (w * len(text), h))
         for l in range(len(images)):
             img = Image.eval(images[l], lambda x: 255 - x)
+            img = img.resize([w, h])
             tiled.paste(img, (w * l, 0))
-        tiled.save("tiledfn.png")
+        # tiled.save("tiledfn.png")
         #create RGBA image and RGB mask
         image = tiled.convert("RGBA") #Image.new("RGBA", (tiled.width, tiled.height), (0,0,0,0))
         datas = image.getdata()
