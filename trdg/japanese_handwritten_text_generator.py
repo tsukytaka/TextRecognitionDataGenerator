@@ -3,8 +3,8 @@ from PIL import Image
 import bitstring
 import jaconv
 
-DATA_DIR_ROOT = '../../ligua/TrainHWJapanese/Data/ETLCDB/'
-# DEF_YAML_PATH = '../../ligua/TrainHWJapanese/Data/ETLCDB/etl_data_def.yml'
+DATA_DIR_ROOT = '../../BillParcelOCR/TrainHWJapanese/Data/ETLCDB/'
+# DEF_YAML_PATH = '../../ligua/BillParcelOCR/Data/ETLCDB/etl_data_def.yml'
 NUMBER_RECORD = 160
 
 # char_dict = None
@@ -105,8 +105,14 @@ def read_chars(filename):
 char_dict_8G = {}
 char_dict_9G = {}
 char_dict_1C = {}
+char_latin_dict_1C = {}
 
 def generate(text, text_color, count):
+    if len(char_latin_dict_1C) == 0:
+        chars = read_chars(DATA_DIR_ROOT + 'ETL1/chars_latin.txt')
+        print("number char latin 1C = ", len(chars))
+        for i in range(len(chars)):
+            char_latin_dict_1C[chars[i]] = i
     if len(char_dict_1C) == 0:
         chars = read_chars(DATA_DIR_ROOT + 'ETL1/chars.txt')
         print("number char 1C = ", len(chars))
@@ -126,7 +132,19 @@ def generate(text, text_color, count):
     
     images=[]
     for k in range(len(text)):
-        if text[k] in char_dict_1C:
+        if text[k] in char_latin_dict_1C:
+            indexDataFile = char_dict_1C[text[k]] // 8
+            dataFile = DATA_DIR_ROOT + 'ETL1/ETL1C_{:02d}'.format(indexDataFile)
+            print("dataFile = ", dataFile)
+            etln_record = ETL167_Record()
+            index = count + 1411*(char_dict_1C[text[k]]%8)
+            print("index=", index)
+            f = bitstring.ConstBitStream(filename=dataFile)
+            record = etln_record.read(f, index)
+            char = etln_record.get_char()
+            img = etln_record.get_image()
+            images.append(img)
+        elif text[k] in char_dict_1C:
             indexDataFile = char_dict_1C[text[k]] // 8 + 7
             dataFile = DATA_DIR_ROOT + 'ETL1/ETL1C_{:02d}'.format(indexDataFile)
             print("dataFile = ", dataFile)

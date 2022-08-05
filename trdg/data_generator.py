@@ -166,93 +166,93 @@ class FakeTextDataGenerator(object):
         #############################
         # Generate background image #
         #############################
-        print("background_type = ", background_type)
-        if background_type == 0:
-            background_img = background_generator.gaussian_noise(
-                background_height, background_width
-            )
-        elif background_type == 1:
-            background_img = background_generator.plain_white(
-                background_height, background_width
-            )
-        elif background_type == 2:
-            background_img = background_generator.quasicrystal(
-                background_height, background_width
-            )
-        else:
-            background_img = background_generator.image(
-                background_height, background_width, image_dir
-            )
-        background_mask = Image.new(
-            "RGB", (background_width, background_height), (0, 0, 0)
-        )
-        print("create bg hw image OK")
+        # print("background_type = ", background_type)
+        # if background_type == 0:
+        #     background_img = background_generator.gaussian_noise(
+        #         background_height, background_width
+        #     )
+        # elif background_type == 1:
+        #     background_img = background_generator.plain_white(
+        #         background_height, background_width
+        #     )
+        # elif background_type == 2:
+        #     background_img = background_generator.quasicrystal(
+        #         background_height, background_width
+        #     )
+        # else:
+        #     background_img = background_generator.image(
+        #         background_height, background_width, image_dir
+        #     )
+        # background_mask = Image.new(
+        #     "RGB", (background_width, background_height), (0, 0, 0)
+        # )
+        # print("create bg hw image OK")
         ##############################################################
         # Comparing average pixel value of text and background image #
         ##############################################################
-        try:
-            resized_img_st = ImageStat.Stat(resized_img, resized_mask.split()[2])
-            background_img_st = ImageStat.Stat(background_img) 
+        # try:
+        #     resized_img_st = ImageStat.Stat(resized_img, resized_mask.split()[2])
+        #     background_img_st = ImageStat.Stat(background_img) 
 
-            resized_img_px_mean = sum(resized_img_st.mean[:2]) / 3
-            background_img_px_mean = sum(background_img_st.mean) / 3
+        #     resized_img_px_mean = sum(resized_img_st.mean[:2]) / 3
+        #     background_img_px_mean = sum(background_img_st.mean) / 3
 
-            if abs(resized_img_px_mean - background_img_px_mean) < 15:
-                print("value of mean pixel is too similar. Ignore this image")
+        #     if abs(resized_img_px_mean - background_img_px_mean) < 15:
+        #         print("value of mean pixel is too similar. Ignore this image")
 
-                print("resized_img_st \n {}".format(resized_img_st.mean))
-                print("background_img_st \n {}".format(background_img_st.mean))
+        #         print("resized_img_st \n {}".format(resized_img_st.mean))
+        #         print("background_img_st \n {}".format(background_img_st.mean))
 
-                return
-        except Exception as err:
-            print("Comparing Exception")
-            return
-        print("Comparing hw image OK")
+        #         return
+        # except Exception as err:
+        #     print("Comparing Exception")
+        #     return
+        # print("Comparing hw image OK")
         #############################
         # Place text with alignment #
         #############################
-        print()
-        new_text_width, _ = resized_img.size
+        # print()
+        # new_text_width, _ = resized_img.size
 
-        if alignment == 0 or width == -1:
-            background_img.paste(resized_img, (margin_left, margin_top), resized_img)
-            background_mask.paste(resized_mask, (margin_left, margin_top))
-        elif alignment == 1:
-            background_img.paste(
-                resized_img,
-                (int(background_width / 2 - new_text_width / 2), margin_top),
-                resized_img,
-            )
-            background_mask.paste(
-                resized_mask,
-                (int(background_width / 2 - new_text_width / 2), margin_top),
-            )
-        else:
-            background_img.paste(
-                resized_img,
-                (background_width - new_text_width - margin_right, margin_top),
-                resized_img,
-            )
-            background_mask.paste(
-                resized_mask,
-                (background_width - new_text_width - margin_right, margin_top),
-            )
-        print("alignment hw image OK")
+        # if alignment == 0 or width == -1:
+        #     background_img.paste(resized_img, (margin_left, margin_top), resized_img)
+        #     background_mask.paste(resized_mask, (margin_left, margin_top))
+        # elif alignment == 1:
+        #     background_img.paste(
+        #         resized_img,
+        #         (int(background_width / 2 - new_text_width / 2), margin_top),
+        #         resized_img,
+        #     )
+        #     background_mask.paste(
+        #         resized_mask,
+        #         (int(background_width / 2 - new_text_width / 2), margin_top),
+        #     )
+        # else:
+        #     background_img.paste(
+        #         resized_img,
+        #         (background_width - new_text_width - margin_right, margin_top),
+        #         resized_img,
+        #     )
+        #     background_mask.paste(
+        #         resized_mask,
+        #         (background_width - new_text_width - margin_right, margin_top),
+        #     )
+        # print("alignment hw image OK")
         #######################
         # Apply gaussian blur #
         #######################
 
-        gaussian_filter = ImageFilter.GaussianBlur(
-            radius=blur if not random_blur else rnd.randint(0, blur)
-        )
-        final_image = background_img.filter(gaussian_filter)
-        final_mask = background_mask.filter(gaussian_filter)
+        # gaussian_filter = ImageFilter.GaussianBlur(
+        #     radius=blur if not random_blur else rnd.randint(0, blur)
+        # )
+        # final_image = background_img.filter(gaussian_filter)
+        # final_mask = background_mask.filter(gaussian_filter)
         
         ###########################################
         # Change image mode (RGB, grayscale, etc.) #
         ############################################
-        # final_image = rotated_img
-        # final_mask = rotated_mask
+        final_image = rotated_img
+        final_mask = rotated_mask
         final_image = final_image.convert(image_mode)
         final_mask = final_mask.convert(image_mode) 
 
