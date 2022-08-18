@@ -11,8 +11,8 @@ seaborn>=0.9.0
 scikit-image
 sklearn
 pyyaml
-#git://github.com/choo/fsutils
 bitstring==3.1.9
 jaconv==0.3
 
 #python run.py -l ja -hw -ni 160 -i "../../ligua/TrainHWJapanese/Data/Subject/Address/address.csv" -c 1947
+python run.py -l ja -hw -ni 1 -e 'png' -i "texts/random_serial.txt" -c 10000

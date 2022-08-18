@@ -54,7 +54,7 @@ class FakeTextDataGenerator(object):
         word_split,
         image_dir,
         stroke_width=0, 
-        stroke_fill="#282828",
+        stroke_fill=None,
         image_mode="RGB", 
         output_bboxes=0,
     ):
@@ -73,7 +73,7 @@ class FakeTextDataGenerator(object):
                 raise ValueError("Vertical handwritten text is unavailable")
             print("gen hw : ", language)
             if language=="ja":
-                image, mask = japanese_handwritten_text_generator.generate(text, text_color, index_image_of_text)
+                image, mask = japanese_handwritten_text_generator.generate(text, text_color, index)
             else:
                 image, mask = handwritten_text_generator.generate(text, text_color)
             
@@ -166,27 +166,27 @@ class FakeTextDataGenerator(object):
         #############################
         # Generate background image #
         #############################
-        # print("background_type = ", background_type)
-        # if background_type == 0:
-        #     background_img = background_generator.gaussian_noise(
-        #         background_height, background_width
-        #     )
-        # elif background_type == 1:
-        #     background_img = background_generator.plain_white(
-        #         background_height, background_width
-        #     )
-        # elif background_type == 2:
-        #     background_img = background_generator.quasicrystal(
-        #         background_height, background_width
-        #     )
-        # else:
-        #     background_img = background_generator.image(
-        #         background_height, background_width, image_dir
-        #     )
-        # background_mask = Image.new(
-        #     "RGB", (background_width, background_height), (0, 0, 0)
-        # )
-        # print("create bg hw image OK")
+        print("background_type = ", background_type)
+        if background_type == 0:
+            background_img = background_generator.gaussian_noise(
+                background_height, background_width
+            )
+        elif background_type == 1:
+            background_img = background_generator.plain_white(
+                background_height, background_width
+            )
+        elif background_type == 2:
+            background_img = background_generator.quasicrystal(
+                background_height, background_width
+            )
+        else:
+            background_img = background_generator.image(
+                background_height, background_width, image_dir
+            )
+        background_mask = Image.new(
+            "RGB", (background_width, background_height), (0, 0, 0)
+        )
+        print("create bg hw image OK")
         ##############################################################
         # Comparing average pixel value of text and background image #
         ##############################################################
